@@ -1,0 +1,144 @@
+Game of Life
+
+"So, here's the challenge:
+
+Implement Conway's Game of Life in 64-bit integer-space using the language of your choice.
+
+Imagine a 2D grid - each cell (coordinate) can be either "alive" or "dead". Every generation of the simulation, the system ticks forward. Each cell's value changes according to the following:
+If an "alive" cell had less than 2 or more than 3 alive neighbors (in any of the 8 surrounding cells), it becomes dead.
+If a "dead" cell had *exactly* 3 alive neighbors, it becomes alive.
+Your input is a list of alive (x, y) integer coordinates. They could be anywhere in the signed 64-bit range. This means the board could be very large!
+
+Sample input:
+(0, 1)
+(1, 2)
+(2, 0)
+(2, 1)
+(2, 2)
+(-2000000000000, -2000000000000)
+(-2000000000001, -2000000000001)
+-----------------------------------------
+
+We're most interested in seeing how you break down the problem and deal with very large integers. Otherwise, feel free to add whatever you like for extra credit. For example, you might add a GUI or animation (Here's a sample for inspiration!).
+
+We intentionally leave the specification for the solution vague to see how you make decisions about these kinds of things and how those decisions are reflected in your code.  The most important advice I can give is to make sure your solution represents your best work and to come prepared to discuss what decisions you've made, alternatives you may have rejected (and why), and where you might take the work going forward.
+
+Please submit the completed project in whatever format you deem reasonable (GitHub, hosted in a web-viewer, etc.) via email. Thank you, and good luck!"
+
+-----------------------------------------
+
+Notes:
+
+version control: github because it's easy to spin up a small project and I'm familiar with it.
+language: C++ as I'm most familiar with it and it's practice for my actual work.
+
+Cells cover whole range of signed integers
+    - need to handle boundaries. options:
+        - no cells exist beyond the boundary; don't process them. For implementation, we need to check boundaries
+        - wrap around
+        I'll just end the simulation at the boundary, there's no compelling reason to wrap around and it's not part of the specification
+
+Need to handle input. What's the format of the input?
+    - text file?
+    - command line args?
+    - most of the program doesn't need to know about how we got the input. Once we read it in we can store it and read it within the simulation code.
+
+Simulation
+    - simulation ticks. Tick rate isn't specified, for simplicity I'll probably make it a const value we reference that's global or at the top of the simulation function so it's easy to change.
+    - each step of the simulation needs to know the previous state of the simulation. so we can't to a rolling update modifying the sim state in-place. We need to have somewhere to set up the new simulation state that's separate from the old state. We also need to mark the new state as current. options: 
+        - double buffer, with a pointer or something to the current state. saves us from copying the whole sim state.
+        - create new sim and copy it into the old sim
+        - copy the old sim and populate the new sim in place. copy strategies are simple to implement but more expensive, esp for the large size of the sim
+
+
+Size of world
+    - signed 64-bit integer indices, so X and Y coordinates are each in the range [-2^63, 2^63). So our cell count is 2^64 * 2^64 = 2^128
+    - TODO check with Scott to make sure I'm interpreting correctly that X and Y can each be anywhere in the 64-bit integer range, vs the pair of coordinates fitting in 64 bits.
+
+Data format of the simulation
+
+    world:
+    - have an entry for each cell in the world. If we used a whole 64 bit address for each cell we'll overflow memory, which would require virtual addresses or something. could have an entry for each if we pack cell entries together using bitfields. 
+        - space: proportional to number of cells. If we use bitfields, (2^128) bits = (2^128)/8 = 2^125 byte addresses. This is too big for 64-bit system virtual memory
+        - time: we have to process every cell, so O(N * cell_processing_time)
+        cells: 
+        - can we just store 1 bool per cell?
+        - maybe can save space by using bitfield to store 64 cells in 1 64-bit address
+
+    - store a collection of live cells (as indices or ids). 
+        - space: O(N), where N is the number of cells in the world. However we'd only be storing N cells if every cell is alive at once. Average case is smaller, likely to be < N/2.
+        - sim process time: O(M * cell_processing_time), processing for M cells where M is the current size of the container. This processing involves updating the current cell and neighbouring cells. We'll end up touching all alive cells and all cells adjacent to live cells. Adjacent-to-live cells can overlap with live cells and other adjacent-to-alive cells.
+        cells:
+        - live cells can be represented either as a 2D index into the world grid, or a single integer that corresponds to a unique cell (the id i would correspond to index (i/N, i%N))
+            - 2D index is simpler to think about, but takes twice as much memory, unless we pack both indices into 1 word. I don't think that allows us to go high enough though. the range of our indices is [0, N/2), [0, N/2) = [0, 2^63)
+        Do we need to add a hardcoded limit to the number of live cells with an assert?
+
+    Testing
+        - should I write some unit tests?
+
+    Viewing:
+    - how should I view the game? 
+        - render with graphics
+        - print to console (text graphics)
+    - does the view need to be able to zoom and move around? The world is huge
+
+    sim update:
+    high-level algorithm approach options are
+    - iterate through previous state's cells and upate around them
+    - iterate over whole map and update around live cells encountered
+        this seems much less efficient
+    details
+    - we need to count neighbours. should we store count on base coordinate struct, or on a separate UpdatingCoordinate struct?
+        - if we do a separate struct, we'll be tracking them in a separate list and will need to copy into the state list (then don't need double buffer)
+        - if we do same struct, we need to cull entries after counting neighbours (would use double buffer)
+        - is either of cull or copy cheaper than the other? I think both are linear in the size of this tick's cell list.
+        - Copy approach requires less memory in the world object but still uses that memory in temp memory
+        - we save on space for neighbour counts -- don't need to store them in the current world state
+    - could update cells inside out or outside in:
+        - for each cell, mark a count on the neighbouring cells. at the end, kill cells that shouldn't be alive.
+        - for each cell, count live neighbours, and kill self if necessary. also need to create neighbours if they don't exist
+    - if our cells are in order of row, then column, then once we get 2 rows past a prospective new cell, we can cull it if not alive. Or we can just cull dead cells at the end
+    - all of our live cells need an updating entry during update,, do we really save anything by not copying last frame? perhaps we should start this frame by copying last
+        - I was thinking maybe we could reuse neighbour counts we calculated last frame but those would be from 2 frames back
+
+    considerations:
+    - scale: do we need to worry about any integers larger than int_max? I don't think so because we're not doing anything like adding positions. The only movement from one cell to another we do is looking at adjacent cells, and we can easily check "if my X == int_max don't look at its neighbours at X+1" and same for Y
+
+
+    Algorithm options:
+
+    Create new frame and copy
+    1. create list of cells with neighbour counts based on last frame. The list will have an entry for each cell alive last frame and each of their neighbours.
+    2. clear previous frame state O(1)
+    3. for each entry in the cell list, copy its coordinate into the current frame state (copy_if)
+    Space:
+    - 2 integers for each alive cell in the previous frame
+    - 3 integers for each potential alive cell in the new frame
+    Time:
+    - copy_if: "3-4) Exactly (last - first) applications of the predicate, between ​0​ and (last - first) assignments (assignment for every element for which predicate is equal to true, dependent on predicate and input data)"
+
+    Double buffer
+    1. update updating state pointer and clear updating state O(1)
+    2. populate current state with list of cells with neighbour counts based on last frame. It will have an entry for each cell alive last frame and each of their neighbours.
+    3. for each entry in the state, remove it if its neighbour count means it shouldn't be alive (erase_if)
+    Space:
+    - 3 integers for each alive cell in the previous frame
+    - 3 integers for each potential alive cell in the current frame
+    Time:
+    - erase_if: "Linear."
+
+    Comparison:
+    time complexity of processing cells should be the same between the 2 algorithms. copy_if vs erase_if is about the same. Create + copy uses less space than double buffer.
+    double buffer may be more parallelizable as it allows us to use the previous frame data, eg. for rendering, while updating the next frame.
+
+    Push-count vs pull-count
+    Push count: for each old cell, increment each neighbour's new cell neighbour count
+    Pull count: for each old cell, create a new cell for each neighbour that doesn't already have a new cell; count old neighbours and mark self for death if count says so. if we destroy self right away we might get recreated by a neighbour.
+    Comparison: push-count is simpler, conceptually fits better with the create-neighbours step, and doesn't require an extra death flag
+    !! just realized that whether a cell was alive last frame affects whether it lives. So updating list needs to include whether it was alive last frame
+
+    Measuring time for ticks:
+    options
+    - measure current time from start time of simulation, and allow tick to occur if the time elapsed is > tick_rate * current_tick
+        - if we get behind this allows ticks to run faster to catch up. I don't think we want this, as if we have a stutter we may blaze by ticks really fast when we might prefer to have time to see them
+    - measure time since last tick and if it's greather than tick_rate, we can tick
