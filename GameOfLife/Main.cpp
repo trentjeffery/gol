@@ -8,7 +8,7 @@
 
 // for easy testing
 constexpr const char* s_inputFile = "C:/projects/gol/input.txt";
-constexpr const float s_secondsPerTick = 0;
+constexpr const float s_secondsPerTick = 0.016;
 
 int main(int argc, char* argv[])
 {
@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
 	// run simulation
 	while (!exit)
 	{
-		std::time_t currentTime;
+		std::time_t currentTime; // todo this needs to be a float
 		time(&currentTime);
 
 		if ((currentTime - lastTickTime) < s_secondsPerTick)

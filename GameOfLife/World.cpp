@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <limits>
 
+#include <cassert>
+
 std::vector<Coordinate> Coordinate::GetNeighbours() const
 {
 	std::vector<Coordinate> result;
@@ -22,11 +24,26 @@ std::vector<Coordinate> Coordinate::GetNeighbours() const
 			{
 				result.emplace_back(i, j);
 			}
+
+			// if we do the loop update increment while j is INT64_MAX it will overflow to negative and we'll infinitely loop
+			// don't need to check for -INT64_MAX because we don't decrement the loop variable
+			if (j == INT64_MAX)
+			{
+				break;
+			}
+		}
+
+		// if we do the loop update increment while x is INT64_MAX it will overflow to negative and we'll infinitely loop
+		// don't need to check for -INT64_MAX because we don't decrement the loop variable
+		if (i == INT64_MAX)
+		{
+			break;
 		}
 	}
+	
+	assert(result.size() <= 8);
+	assert(result.size() >= 3);
 
-	_ASSERT(result.size() <= 8);
-	_ASSERT(result.size() >= 3);
 	return result;
 }
 
