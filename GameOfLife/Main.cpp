@@ -8,7 +8,7 @@
 
 // for easy testing
 constexpr const char* s_inputFile = "C:/projects/gol/input.txt";
-constexpr const float s_secondsPerTick = 0.016;
+constexpr const double s_secondsPerTick = 0.01;
 
 int main(int argc, char* argv[])
 {
@@ -36,15 +36,14 @@ int main(int argc, char* argv[])
 	bool exit = false;
 	
 	int tick = 0;
-	std::time_t lastTickTime;
-	time(&lastTickTime);
+	auto lastTickTime = std::chrono::steady_clock::now();;
 	// run simulation
 	while (!exit)
 	{
-		std::time_t currentTime; // todo this needs to be a float
-		time(&currentTime);
+		auto currentTickTime = std::chrono::steady_clock::now();; // todo this needs to be a float
+		std::chrono::duration<double> timeSinceLastTick = currentTickTime - lastTickTime;
 
-		if ((currentTime - lastTickTime) < s_secondsPerTick)
+		if (timeSinceLastTick.count() < s_secondsPerTick)
 		{
 			continue;
 		}
@@ -56,9 +55,8 @@ int main(int argc, char* argv[])
 		}
 		printf("\n");
 
-		time(&lastTickTime);
 		++tick;
-
+		lastTickTime = currentTickTime;
 		world->Update();
 
 	}
