@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameOfLife", "GameOfLife.vc
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnitTest", "..\UnitTest\UnitTest.vcxproj", "{E2F07E7A-CBCD-4429-809C-D16499E646EF}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "InputFileGenerator", "..\InputFileGenerator\InputFileGenerator.vcxproj", "{E79B2EAF-42A7-4CA0-819D-3940404858A3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,14 @@ Global
 		{E2F07E7A-CBCD-4429-809C-D16499E646EF}.Release|x64.Build.0 = Release|x64
 		{E2F07E7A-CBCD-4429-809C-D16499E646EF}.Release|x86.ActiveCfg = Release|Win32
 		{E2F07E7A-CBCD-4429-809C-D16499E646EF}.Release|x86.Build.0 = Release|Win32
+		{E79B2EAF-42A7-4CA0-819D-3940404858A3}.Debug|x64.ActiveCfg = Debug|x64
+		{E79B2EAF-42A7-4CA0-819D-3940404858A3}.Debug|x64.Build.0 = Debug|x64
+		{E79B2EAF-42A7-4CA0-819D-3940404858A3}.Debug|x86.ActiveCfg = Debug|Win32
+		{E79B2EAF-42A7-4CA0-819D-3940404858A3}.Debug|x86.Build.0 = Debug|Win32
+		{E79B2EAF-42A7-4CA0-819D-3940404858A3}.Release|x64.ActiveCfg = Release|x64
+		{E79B2EAF-42A7-4CA0-819D-3940404858A3}.Release|x64.Build.0 = Release|x64
+		{E79B2EAF-42A7-4CA0-819D-3940404858A3}.Release|x86.ActiveCfg = Release|Win32
+		{E79B2EAF-42A7-4CA0-819D-3940404858A3}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

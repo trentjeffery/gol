@@ -69,6 +69,10 @@ void World::Update()
 		const Cells neighbours = aliveCell.GetNeighbours();
 		for (const auto& neighbour : neighbours)
 		{
+			// would it be faster to just make a huge long list of all the potential alive cells, allowing duplicates, and then folding them all together (instead of doing a bunch of finds)?
+			// that approach would give us linear time to create all entries, and... linear? time to combine them all
+			// current approach does a logn search for each alive cell, so that's nlogn
+			// actually we're using an unsorted vector so, so it's linear searches for a total of n^2
 			const auto& foundNeighbour = std::find(potentialAliveCells.begin(), potentialAliveCells.end(), neighbour);
 			if (foundNeighbour == potentialAliveCells.end())
 			{

@@ -142,3 +142,16 @@ Data format of the simulation
     - measure current time from start time of simulation, and allow tick to occur if the time elapsed is > tick_rate * current_tick
         - if we get behind this allows ticks to run faster to catch up. I don't think we want this, as if we have a stutter we may blaze by ticks really fast when we might prefer to have time to see them
     - measure time since last tick and if it's greather than tick_rate, we can tick
+
+    Optimization options:
+    - 		// would it be faster to just make a huge long list of all the potential alive cells, allowing duplicates, and then folding them all together (instead of doing a bunch of finds)?
+			// that approach would give us linear time to create all entries, and... linear? time to combine them all
+			// current approach does a logn search for each alive cell, so that's nlogn
+            // actually we're using an unsorted vector so it's currently n^2
+            // if I keep it sorted does that make it nlogn?
+    - parallelize using reduce algorithm.
+        - split alive cells list into chunks, and spin up a thread to process each
+        - after processing each chunk, we have multiple lists of potentially alive cells. Combine them together, for each potentially alive cell:
+            - sum up alive neighbours
+            - combine "alive last tick" flags with OR
+    - new alg idea: 
