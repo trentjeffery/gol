@@ -11,7 +11,7 @@
 constexpr const char* s_inputFile = "../input.txt";
 
 // tuning
-constexpr const double s_desiredSecondsPerTick = 0.01;
+constexpr const double s_desiredSecondsPerTick = 0.01; // limit tick rate. Set to 0 for no throttling
 
 // command line args
 bool s_printAliveCells = false;
@@ -19,6 +19,7 @@ bool s_printTickTime = false;
 
 int main(int argc, char* argv[])
 {
+	// read command line args
 	for (int i = 0; i < argc; ++i)
 	{
 		const char* arg = argv[i];
@@ -27,7 +28,7 @@ int main(int argc, char* argv[])
 		s_printTickTime = s_printTickTime || (strcmp(arg, "-printTickTime") == 0);
 	}
 
-	// read input of alive cell coordinates
+	// read input of input alive cell coordinates from file
 	Cells startingCells;
 	std::ifstream inputFileStream(s_inputFile);
 	for (char line[256]; inputFileStream.getline(line, 128);)
@@ -45,13 +46,15 @@ int main(int argc, char* argv[])
 	}
 	inputFileStream.close();
 
-	// do any initialization
+	// create world
 	std::unique_ptr<World> world = std::make_unique<World>(startingCells);
 
+	// loop exit flag; currently always set false
 	bool exit = false;
 	
-	int tick = 0;
+	int currentTick = 0;
 	auto lastTickTime = std::chrono::steady_clock::now();;
+
 	// run simulation
 	while (!exit)
 	{
@@ -65,12 +68,12 @@ int main(int argc, char* argv[])
 
 		if (s_printTickTime)
 		{
-			printf("Tick %d tick time: %f seconds\n", tick, timeSinceLastTick.count());
+			printf("Tick %d tick time: %f seconds\n", currentTick, timeSinceLastTick.count());
 		}
 
 		if (s_printAliveCells)
 		{
-			printf("Tick %d alive cells:\n", tick);
+			printf("Tick %d alive cells:\n", currentTick);
 			for (const auto& cell : world->GetAliveCells())
 			{
 				printf("(%I64d, %I64d) ", cell.x, cell.y);
@@ -79,16 +82,13 @@ int main(int argc, char* argv[])
 		}
 		else
 		{
-			printf("Tick %d. Number of alive cells:%zd\n", tick, world->GetAliveCells().size());
+			printf("Tick %d. Number of alive cells:%zd\n", currentTick, world->GetAliveCells().size());
 		}
 
-		++tick;
+		++currentTick;
 		lastTickTime = currentTickTime;
 		world->Update();
-
 	}
-
-	// do any cleanup
 
 	return 0;
 }
