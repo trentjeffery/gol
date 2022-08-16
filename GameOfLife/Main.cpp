@@ -15,6 +15,7 @@ constexpr const double s_desiredSecondsPerTick = 0.01;
 
 // command line args
 bool s_printAliveCells = false;
+bool s_printTickTime = false;
 
 int main(int argc, char* argv[])
 {
@@ -22,7 +23,8 @@ int main(int argc, char* argv[])
 	{
 		const char* arg = argv[i];
 
-		s_printAliveCells = (strcmp(arg, "-printAliveCells") == 0);
+		s_printAliveCells = s_printAliveCells || (strcmp(arg, "-printAliveCells") == 0);
+		s_printTickTime = s_printTickTime || (strcmp(arg, "-printTickTime") == 0);
 	}
 
 	// read input of alive cell coordinates
@@ -61,6 +63,11 @@ int main(int argc, char* argv[])
 			continue;
 		}
 
+		if (s_printTickTime)
+		{
+			printf("Tick %d tick time: %f seconds\n", tick, timeSinceLastTick.count());
+		}
+
 		if (s_printAliveCells)
 		{
 			printf("Tick %d alive cells:\n", tick);
@@ -72,7 +79,7 @@ int main(int argc, char* argv[])
 		}
 		else
 		{
-			printf("Tick %d. Number of alive cells:%d\n", tick, world->GetAliveCells().size());
+			printf("Tick %d. Number of alive cells:%zd\n", tick, world->GetAliveCells().size());
 		}
 
 		++tick;
