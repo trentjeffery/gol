@@ -1,0 +1,7 @@
+visualization
+fix tickrate (currently has to be integer seconds per tick)
+parallelize? can do a reduce/accumulate
+could also be a good candidate for gpu compute
+more tests
+- test boundaries and any other edge cases/likely bug cases
+    - boundaries done
