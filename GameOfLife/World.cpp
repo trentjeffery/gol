@@ -69,10 +69,17 @@ void World::Update()
 		const Cells neighbours = aliveCell.GetNeighbours();
 		for (const auto& neighbour : neighbours)
 		{
+			// time complexity and possible speed improvement notes:
+			// let n be size of m_aliveCells. Potential alive cells size is O(n) (it will be at most 9*n in the case no alive cells are neighbours)
+			// current approach does O(n) searches. We're currently using an unsorted vector so that's O(n) linear searches for a total time of O(n^2)
+			// We could use a sorted container or different container to get O(log(n)) searches, which would get our update down to O(nlog(n)) time
+			
 			// would it be faster to just make a huge long list of all the potential alive cells, allowing duplicates, and then folding them all together (instead of doing a bunch of finds)?
-			// that approach would give us linear time to create all entries, and... linear? time to combine them all
-			// current approach does a logn search for each alive cell, so that's nlogn
-			// actually we're using an unsorted vector so, so it's linear searches for a total of n^2
+			// that approach would give us linear time to create all entries. 
+			// How much time to combine all entries? We need to pre-sort them or effectively sort them as we go to get same-cell entries together, total for merging cells should be O(nlog(n)) 
+			//  - if we pre-sort, sort takes O(nlog(n)) and merge pass takes O(n), for total of O(nlog(n))
+			//  - if we don't sort, we need to do something like a merge/insertion for each element as we combine, which I belive would take O(log(n)) per element again giving us O(nlog(n))
+
 			const auto& foundNeighbour = std::find(potentialAliveCells.begin(), potentialAliveCells.end(), neighbour);
 			if (foundNeighbour == potentialAliveCells.end())
 			{
